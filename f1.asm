@@ -1,41 +1,45 @@
+global f1
+extern printf
+
 section .data
-msg db "Bloco %d - Endereço: %d | Fim: %d", 0   ; String terminada em 0
+    msg_sucesso db "Bloco %d: Endereco %d a %d", 10, 0
+    msg_erro db "Erro: Nao ha espaco suficiente.", 10, 0
 
 section .text
 f1:
-    ; Prologo da função f1
     enter 0, 0
+    mov eax, [ebp+8]    ; prog_size
+    mov ecx, [ebp+12]   ; num_blocos
+    mov edi, [ebp+16]   ; blocos
 
-    ; Recebe os parâmetros pela pilha
-    mov eax, [ebp+8]    ; Tamanho do programa (prog_size)
-    mov ecx, [ebp+12]   ; Número de blocos (num_blocos)
-    mov edi, [ebp+16]   ; Ponteiro para o array de blocos
-
-    ; Processa os blocos
-    xor edx, edx        ; Zera o índice de blocos
+    xor edx, edx        ; índice do bloco
 .check_block:
-    mov ebx, [edi + edx*8]         ; Endereço do bloco
-    mov esi, [edi + edx*8 + 4]     ; Tamanho do bloco
-    cmp eax, esi                   ; Verifica se o programa cabe neste bloco
-    jle .allocate                  ; Se couber, aloca o programa
-    add edx, 1                     ; Se não couber, vai para o próximo bloco
-    cmp edx, ecx                   ; Verifica se há mais blocos
+    mov ebx, [edi + edx*8]     ; endereço do bloco
+    mov esi, [edi + edx*8 + 4] ; tamanho do bloco
+    cmp eax, esi
+    jle .allocate
+    inc edx
+    cmp edx, ecx
     jl .check_block
-    ; Se o programa não couber, chama a função de erro
-    push dword "Programa não cabe nos blocos apresentados."
-    call f2
+
+    ; Caso erro
+    push msg_erro
+    call printf
+    add esp, 4
     jmp .end
 
 .allocate:
-    ; Calcula o endereço final do programa no bloco
-    lea ebx, [ebx + eax - 1]   ; Calcula o endereço final
+    inc edx             ; bloco indexado a partir de 1
+    mov ecx, ebx        ; salva endereço inicial
+    lea ebx, [ecx + eax - 1] ; endereço final
 
-    ; Passa o endereço da string para f2
-    lea edi, [msg]             ; Carrega o endereço da string
-    push edi                   ; Passa o endereço da string
-    push dword [edi + edx*8]   ; Passa o endereço inicial
-    push dword ebx             ; Passa o endereço final
-    call f2
+    ; Passa parâmetros para printf via f2
+    push ebx            ; fim
+    push ecx            ; inicio
+    push edx            ; num_bloco
+    push msg_sucesso    ; formato
+    call printf
+    add esp, 16
 
 .end:
     leave

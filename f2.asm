@@ -1,34 +1,33 @@
 ; f2.asm
 ; Compile com: nasm -f elf32 f2.asm -o f2.o
-global f2
+global f2           ; Torna o símbolo f2 visível para o linker
 
 section .text
 f2:
-    ; Prologo padrão cdecl
-    push ebp
-    mov ebp, esp
+    ; Prologo da convenção cdecl
+    enter 0, 0       ; Cria o frame da pilha
 
-    ; f2 espera receber um parâmetro: ponteiro para a mensagem (char *)
-    ; O parâmetro estará em [ebp+8]
-    mov edi, [ebp+8]  ; EDI recebe o ponteiro para a mensagem
+    ; Recebe os parâmetros:
+    ; [ebp+8] -> mensagem (formatada)
+    ; [ebp+12] -> endereço inicial
+    ; [ebp+16] -> endereço final
+    mov edi, [ebp+12]  ; O primeiro parâmetro (mensagem) está em [ebp+8]
+    mov esi, [ebp+16]  ; Endereço inicial
+    mov edx, [ebp+20]  ; Endereço final
 
-    ; Calcula o tamanho da string (procura o terminador 0)
-    mov ecx, 0        ; ECX será usado como contador de caracteres
+    ; Calcula o tamanho da string (mensagem)
+    xor ecx, ecx      ; Inicializa o contador
 .len_loop:
-    cmp byte [edi+ecx], 0
+    cmp byte [edi+ecx], 0  ; Verifica o fim da string
     je .len_done
     inc ecx
     jmp .len_loop
 .len_done:
-    ; Prepara e faz a chamada de sistema sys_write
-    ; Sys_write: eax = 4, ebx = file descriptor, ecx = buffer, edx = tamanho
-    mov eax, 4        ; número da syscall write
-    mov ebx, 1        ; file descriptor 1 = stdout
-    mov edx, ecx      ; tamanho da string
-    mov ecx, edi      ; ponteiro para a string
-    int 0x80          ; chama o kernel
 
-    ; Epilogo
-    mov esp, ebp
-    pop ebp
-    ret
+    ; Chama o sistema para imprimir (sys_write)
+    mov eax, 4        ; Syscall número 4 (write)
+    mov ebx, 1        ; File descriptor 1 = stdout
+    mov edx, ecx      ; Tamanho da string
+    int 0x80          ; Interrupção para chamar o kernel
+
+    ; Epílogo

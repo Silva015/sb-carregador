@@ -35,17 +35,19 @@ f1:
 .allocate:
     ; Calcula o endereço final do programa no bloco
     ; endereço_final = endereço_inicial + tamanho_programa - 1
-    ; O endereço final do programa no bloco
     lea ebx, [ebx + eax - 1]   ; Calcula o endereço final
 
     ; Agora passamos as informações para a função f2 para impressão
     ; Passa "Bloco X - Endereço: <endereco_inicial> | Fim: <endereco_final>"
     push dword ebx                ; Endereço final
     push dword [edi + edx*8]      ; Endereço inicial
-    push dword "Bloco %d - Endereço: %d | Fim: %d"
+    push dword msg               ; Mensagem formatada
     call f2
 
 .end:
     ; Epílogo: Restaura o frame da pilha
     leave
     ret
+
+section .data
+msg db "Bloco %d - Endereço: %d | Fim: %d", 0  ; A string termina com 0 para indicar o fim

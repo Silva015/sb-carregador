@@ -130,6 +130,6 @@ O programa foi testado com diversos cenários, incluindo:
 ## Contato
 Para dúvidas ou sugestões, entre em contato:
 - Email: [tutuscarneiro@gmail.com]
-- Repositório: [link-para-o-repositorio]
+- Repositório: [https://github.com/Silva015/sb-carregador]
 
 ---

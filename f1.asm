@@ -60,23 +60,23 @@ f1:
     jle .fim
     
     mov edx, [ebp-8]
-    cmp edx, ecx
+    cmp edx, ecx              ; Verifica se ultrapassou o número de blocos
     jge .erro
     
     mov eax, [edi + edx*8]     ; Endereço do bloco
     mov esi, [edi + edx*8 + 4] ; Tamanho do bloco
     
     ; Determina quanto usar deste bloco
-    mov edx, [ebp-4]
-    cmp esi, edx
-    jl .usar_todo_bloco
-    mov esi, edx
+    cmp esi, [ebp-4]
+    jle .usar_todo_bloco
+    mov esi, [ebp-4]          ; Usa apenas o restante necessário
 
 .usar_todo_bloco:
     sub [ebp-4], esi           ; Atualiza remaining
     lea ebx, [eax + esi - 1]   ; Endereço final
     
-    ; Imprime a alocação
+    ; Imprime a alocação (preserva ecx)
+    push ecx
     push ebx
     push eax
     mov eax, [ebp-8]
@@ -85,6 +85,7 @@ f1:
     push msg_alocacao
     call f2
     add esp, 16
+    pop ecx
     
     inc dword [ebp-8]          ; Próximo bloco
     jmp .phase2_loop
